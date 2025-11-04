@@ -33,11 +33,17 @@ func AnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	result, err := AnalyzePage(resp.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing HTML: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		http.Error(w, fmt.Sprintf("URL unreachable: HTTP %d - %s", resp.StatusCode, http.StatusText(resp.StatusCode)), resp.StatusCode)
 		return
 	}
 
-	// Placeholder response
-	fmt.Fprintf(w, "Fetched URL: %s\nStatus: %d", url, resp.StatusCode)
+	// Simple text response for now
+	fmt.Fprintf(w, "HTML Version: %s\nTitle: %s\nHeadings: %+v", result.HTMLVersion, result.Title, result.Headings)
 }
