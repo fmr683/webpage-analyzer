@@ -24,12 +24,12 @@ type Links struct {
 	Inaccessible int
 }
 
-// Add this global variable for mocking in tests
+// Mockable HTTP client (timeout + no-follow redirects)
 var httpClient = &http.Client{
-    Timeout: 5 * time.Second,
-    CheckRedirect: func(req *http.Request, via []*http.Request) error {
-        return http.ErrUseLastResponse
-    },
+	Timeout: 5 * time.Second,
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	},
 }
 
 func AnalyzePage(body io.Reader, pageURL string) (*AnalysisResult, error) {
@@ -49,96 +49,131 @@ func AnalyzePage(body io.Reader, pageURL string) (*AnalysisResult, error) {
 		result.HTMLVersion = "Unknown"
 	}
 
-	// Traverse for title, headings, links
+	// Traverse for title, headings, links, and login forms
 	var links []string
+	var hasLogin bool
+
 	var traverse func(*html.Node)
-traverse = func(n *html.Node) {
-	if n.Type == html.ElementNode {
-		switch strings.ToLower(n.Data) {
-		case "title":
-			if n.FirstChild != nil {
-				result.Title = n.FirstChild.Data
-			}
-		case "h1", "h2", "h3", "h4", "h5", "h6":
-			// keep keys consistent in lowercase
-			result.Headings[strings.ToLower(n.Data)]++
-		case "a":
-			for _, attr := range n.Attr {
-				if attr.Key == "href" {
-					links = append(links, attr.Val)
+	traverse = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			switch strings.ToLower(n.Data) {
+			case "title":
+				if n.FirstChild != nil {
+					result.Title = n.FirstChild.Data
+				}
+			case "h1", "h2", "h3", "h4", "h5", "h6":
+				// ensure keys are lowercase and consistent
+				result.Headings[strings.ToLower(n.Data)]++
+			case "a":
+				for _, attr := range n.Attr {
+					if attr.Key == "href" {
+						links = append(links, attr.Val)
+					}
+				}
+			case "form":
+				// very simple login-form heuristic
+				var hasPassword, hasUser bool
+				var checkInputs func(*html.Node)
+				checkInputs = func(m *html.Node) {
+					if m.Type == html.ElementNode && strings.ToLower(m.Data) == "input" {
+						var inputType, inputName string
+						for _, attr := range m.Attr {
+							switch strings.ToLower(attr.Key) {
+							case "type":
+								inputType = strings.ToLower(attr.Val)
+							case "name":
+								inputName = strings.ToLower(attr.Val)
+							}
+						}
+						if inputType == "password" {
+							hasPassword = true
+						}
+						if (inputType == "email" || inputType == "text") &&
+							(strings.Contains(inputName, "user") ||
+								strings.Contains(inputName, "email") ||
+								strings.Contains(inputName, "login") ||
+								strings.Contains(inputName, "username")) {
+							hasUser = true
+						}
+					}
+					for c := m.FirstChild; c != nil; c = c.NextSibling {
+						checkInputs(c)
+					}
+				}
+				checkInputs(n)
+				if hasPassword && hasUser {
+					hasLogin = true
 				}
 			}
 		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			traverse(c)
+		}
 	}
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		traverse(c)
-	}
-}
-
 	traverse(doc)
 
+	result.HasLoginForm = hasLogin
 	result.Links = analyzeLinks(links, pageURL)
 
 	return result, nil
 }
 
 func analyzeLinks(links []string, baseURL string) Links {
-    parsedBase, err := url.Parse(baseURL)
-    if err != nil || parsedBase == nil || parsedBase.Host == "" {
-        return Links{Inaccessible: len(links)}
-    }
+	parsedBase, err := url.Parse(baseURL)
+	if err != nil || parsedBase == nil || parsedBase.Host == "" {
+		// if base URL is unusable, we can’t resolve/validate: everything is "inaccessible"
+		return Links{Inaccessible: len(links)}
+	}
 
-    var mu sync.Mutex
-    var wg sync.WaitGroup
-    inacc := 0
-    inter := 0
-    exter := 0
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 
-    for _, rawLink := range links {
-        parsed, err := url.Parse(rawLink)
-        if err != nil {
-            mu.Lock()
-            inacc++
-            mu.Unlock()
-            continue
-        }
+	internalCount := 0
+	externalCount := 0
+	inaccCount := 0
 
-        absURL := parsedBase.ResolveReference(parsed)
-        if absURL.Scheme == "" || absURL.Host == "" {
-            mu.Lock()
-            inacc++
-            mu.Unlock()
-            continue
-        }
+	for _, raw := range links {
+		parsed, err := url.Parse(raw)
+		if err != nil {
+			inaccCount++
+			continue
+		}
+		abs := parsedBase.ResolveReference(parsed)
+		// require scheme + host to make a request
+		if abs.Scheme == "" || abs.Host == "" {
+			inaccCount++
+			continue
+		}
 
-        isInternal := absURL.Host == parsedBase.Host
+		isInternal := abs.Host == parsedBase.Host
 
-        wg.Add(1)
-        go func(u *url.URL, internal bool) {
-            defer wg.Done()
-            resp, err := httpClient.Head(u.String()) // uses mockable client
-            mu.Lock()
-            defer mu.Unlock()
-            if err != nil || (resp != nil && resp.StatusCode >= 400) {
-                inacc++
-            } else {
-                if internal {
-                    inter++
-                } else {
-                    exter++
-                }
-            }
-            if resp != nil {
-                resp.Body.Close()
-            }
-        }(absURL, isInternal)
-    }
-    wg.Wait()
+		wg.Add(1)
+		go func(u *url.URL, isInternal bool) {
+			defer wg.Done()
 
-    return Links{
-        Internal:     inter,
-        External:     exter,
- 
-		Inaccessible: inacc,
-    }
+			resp, err := httpClient.Head(u.String())
+			mu.Lock()
+			defer mu.Unlock()
+
+			if err != nil || (resp != nil && resp.StatusCode >= 400) {
+				inaccCount++
+			} else {
+				if isInternal {
+					internalCount++
+				} else {
+					externalCount++
+				}
+			}
+			if resp != nil {
+				resp.Body.Close()
+			}
+		}(abs, isInternal)
+	}
+	wg.Wait()
+
+	return Links{
+		Internal:     internalCount,
+		External:     externalCount,
+		Inaccessible: inaccCount,
+	}
 }
