@@ -33,7 +33,7 @@ func AnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	result, err := AnalyzePage(resp.Body)
+	result, err := AnalyzePage(resp.Body, url)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error parsing HTML: %v", err), http.StatusInternalServerError)
 		return
