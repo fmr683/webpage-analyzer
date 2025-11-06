@@ -1,39 +1,161 @@
-body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-label {
-    margin-bottom: 10px;
-}
-
-input[type="text"] {
-    width: 100%;
-    max-width: 400px;
-    padding: 8px;
-    margin-bottom: 10px;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
-}
+/* -------------------------------------------------
+   Global reset & typography
+   ------------------------------------------------- */
+   *,
+   *::before,
+   *::after {
+       box-sizing: border-box;
+       margin: 0;
+       padding: 0;
+   }
+   
+   html {
+       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+       line-height: 1.6;
+       color: #333;
+       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+       min-height: 100vh;
+   }
+   
+   body {
+       padding: 2rem 1rem;
+   }
+   
+   /* -------------------------------------------------
+      Layout containers
+      ------------------------------------------------- */
+   .container {
+       max-width: 860px;
+       margin: 0 auto;
+       background: #ffffff;
+       border-radius: 16px;
+       overflow: hidden;
+       box-shadow: 0 12px 30px rgba(0,0,0,.12);
+   }
+   
+   /* -------------------------------------------------
+      Header / Hero
+      ------------------------------------------------- */
+   .header {
+       background: #4facfe;
+       color: #fff;
+       padding: 2rem 1.5rem;
+       text-align: center;
+   }
+   .header h1 {
+       font-size: 2.2rem;
+       font-weight: 700;
+       margin-bottom: .4rem;
+   }
+   .header p {
+       font-size: 1.05rem;
+       opacity: .9;
+   }
+   
+   /* -------------------------------------------------
+      Form (index page)
+      ------------------------------------------------- */
+   .form-wrapper {
+       padding: 2rem;
+       background: #fafafa;
+   }
+   .form-wrapper form {
+       display: flex;
+       flex-direction: column;
+       align-items: center;
+       gap: 1rem;
+   }
+   .form-wrapper label {
+       font-weight: 600;
+       font-size: 1.1rem;
+   }
+   .form-wrapper input[type=text] {
+       width: 100%;
+       max-width: 520px;
+       padding: .85rem 1.2rem;
+       font-size: 1rem;
+       border: 2px solid #ddd;
+       border-radius: 12px;
+       transition: border-color .25s, box-shadow .25s;
+   }
+   .form-wrapper input[type=text]:focus {
+       outline: none;
+       border-color: #4facfe;
+       box-shadow: 0 0 0 4px rgba(79,172,254,.2);
+   }
+   .form-wrapper button {
+       padding: .9rem 2.2rem;
+       font-size: 1.05rem;
+       font-weight: 600;
+       color: #fff;
+       background: #185a9d;
+       border: none;
+       border-radius: 12px;
+       cursor: pointer;
+       transition: transform .2s, box-shadow .2s;
+   }
+   .form-wrapper button:hover {
+       transform: translateY(-2px);
+       box-shadow: 0 6px 14px rgba(0,0,0,.15);
+   }
+   
+   /* -------------------------------------------------
+      Results page
+      ------------------------------------------------- */
+   .result-wrapper {
+       padding: 2rem;
+   }
+   .result-wrapper .back-link {
+       display: inline-block;
+       margin-bottom: 1.5rem;
+       color: #4facfe;
+       text-decoration: none;
+       font-weight: 600;
+   }
+   .result-wrapper .back-link:hover {
+       text-decoration: underline;
+   }
+   
+   /* Section cards */
+   section.card {
+       background: #f8f9fc;
+       border-radius: 12px;
+       padding: 1.5rem;
+       margin-bottom: 1.5rem;
+       box-shadow: 0 4px 12px rgba(0,0,0,.06);
+   }
+   section.card h2 {
+       font-size: 1.35rem;
+       margin-bottom: .8rem;
+       color: #2c3e50;
+       border-bottom: 2px solid #4facfe;
+       padding-bottom: .4rem;
+   }
+   section.card ul {
+       list-style: none;
+   }
+   section.card li {
+       margin-bottom: .5rem;
+       font-size: 1rem;
+   }
+   section.card strong {
+       color: #2c3e50;
+   }
+   
+   /* Error box */
+   .error {
+       background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+       color: #fff;
+       padding: 1.2rem;
+       border-radius: 12px;
+       margin-bottom: 1.5rem;
+       font-weight: 600;
+       text-align: center;
+       box-shadow: 0 4px 12px rgba(255,107,107,.2);
+   }
+   
+   /* Responsive tweaks */
+   @media (max-width: 600px) {
+       .header h1 { font-size: 1.8rem; }
+       .form-wrapper input[type=text] { max-width: 100%; }
+   }

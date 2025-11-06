@@ -1,19 +1,30 @@
 package main
 
 import (
-	"log"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
+
 	"webpage-analyzer/internal/analyzer"
 )
 
+var logger = logrus.New()
+
 func main() {
-	// Serve static files (HTML form)
-	http.Handle("/", http.FileServer(http.Dir("static")))
+	// Use JSON formatted logs (nice for production, easy to read in dev)
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
 
-	http.HandleFunc("/analyze", analyzer.AnalyzeHandler)
+	// Serve static assets (HTML + CSS)
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", fs)
 
-	log.Println("Server starting on :8080")
+	// Analysis endpoint
+	http.HandleFunc("/analyze", analyzer.AnalyzeHandler(logger))
+
+	logger.Info("Server starting on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
+		logger.WithError(err).Fatal("Server failed")
 	}
 }

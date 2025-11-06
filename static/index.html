@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <h1>Analyze a Web Page</h1>
-    <form action="/analyze" method="post">
-        <label for="url">Enter URL:</label>
-        <input type="text" id="url" name="url" required>
-        <button type="submit">Analyze</button>
-    </form>
+    <div class="container">
+        <header class="header">
+            <h1>Web Page Analyzer</h1>
+            <p>Enter any URL and get instant HTML insights</p>
+        </header>
+
+        <div class="form-wrapper">
+            <form action="/analyze" method="post">
+                <label for="url">URL to analyze</label>
+                <input type="text" id="url" name="url" placeholder="https://example.com" required autofocus>
+                <button type="submit">Analyze</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

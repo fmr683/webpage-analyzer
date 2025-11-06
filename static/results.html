@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Analysis Result</h1>
+        </header>
+
+        <div class="result-wrapper">
+            <a href="/" class="back-link">Analyze another page</a>
+
+            {{if .Error}}
+                <div class="error">{{.Error}}</div>
+            {{else}}
+                <p><strong>URL:</strong> <a href="{{.URL}}" target="_blank" rel="noopener">{{.URL}}</a></p>
+
+                <section class="card">
+                    <h2>Document Info</h2>
+                    <ul>
+                        <li><strong>HTML Version:</strong> {{.HTMLVersion}}</li>
+                        <li><strong>Title:</strong> {{.Title}}</li>
+                    </ul>
+                </section>
+
+                <section class="card">
+                    <h2>Headings</h2>
+                    <ul>
+                        {{range $level, $count := .Headings}}
+                            <li><strong>{{$level}}:</strong> {{$count}}</li>
+                        {{else}}
+                            <li>No headings found.</li>
+                        {{end}}
+                    </ul>
+                </section>
+
+                <section class="card">
+                    <h2>Links</h2>
+                    <ul>
+                        <li><strong>Internal:</strong> {{.Links.Internal}}</li>
+                        <li><strong>External:</strong> {{.Links.External}}</li>
+                        <li><strong>Inaccessible:</strong> {{.Links.Inaccessible}}</li>
+                    </ul>
+                </section>
+
+                <section class="card">
+                    <h2>Login Form</h2>
+                    <p>{{if .HasLoginForm}}<strong>Yes</strong> – a login form was detected.{{else}}<strong>No</strong> login form detected.{{end}}</p>
+                </section>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html>
