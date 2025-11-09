@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-
+	"os"
 	"github.com/didip/tollbooth/v7"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -17,6 +17,12 @@ func main() {
 	logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+
+	// === Config from ENV ===
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	// === Template & Metrics Init ===
 	analyzer.Tmpl = analyzer.LoadTemplate()
@@ -36,9 +42,9 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 
 	// === Start Server ===
-	logger.Info("Server starting on :8080")
-	logger.Info("Metrics available at http://localhost:8080/metrics")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	logger.Infof("Server starting on :%s", port)
+	logger.Info("Metrics: http://localhost:" + port + "/metrics")
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		logger.WithError(err).Fatal("Server failed")
 	}
 }
