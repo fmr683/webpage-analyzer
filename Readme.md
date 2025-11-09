@@ -68,17 +68,6 @@ The app:
 
 ---
 
-## External Dependencies
-
-| Dependency | Install Command |
-|-----------|-----------------|
-| Go modules | `go mod tidy` |
-| Redis | `docker run -d --name redis -p 6379:6379 redis:alpine` |
-
-> All Go dependencies are managed via `go.mod` — no manual install needed.
-
----
-
 ## Setup Instructions
 
 ### Environment Configuration
