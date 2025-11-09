@@ -121,7 +121,6 @@ func AnalyzePage(body io.Reader, pageURL string) (*AnalysisResult, error) {
 func analyzeLinks(links []string, baseURL string) Links {
 	parsedBase, err := url.Parse(baseURL)
 	if err != nil || parsedBase == nil || parsedBase.Host == "" {
-		// if base URL is unusable, we can’t resolve/validate: everything is "inaccessible"
 		return Links{Inaccessible: len(links)}
 	}
 
@@ -139,7 +138,6 @@ func analyzeLinks(links []string, baseURL string) Links {
 			continue
 		}
 		abs := parsedBase.ResolveReference(parsed)
-		// require scheme + host to make a request
 		if abs.Scheme == "" || abs.Host == "" {
 			inaccCount++
 			continue
@@ -147,9 +145,11 @@ func analyzeLinks(links []string, baseURL string) Links {
 
 		isInternal := abs.Host == parsedBase.Host
 
+		Acquire()
 		wg.Add(1)
 		go func(u *url.URL, isInternal bool) {
 			defer wg.Done()
+			defer Release()
 
 			resp, err := httpClient.Head(u.String())
 			mu.Lock()
