@@ -16,7 +16,7 @@ The app:
   - Internal / External / Inaccessible links
   - Login form detection
 - Handles errors gracefully with HTTP status codes
-- Is fully monitored via **Prometheus + Grafana**
+- Is fully monitored via **Prometheus**
 
 > **Live Demo**: `http://localhost:8080`  
 > **Metrics**: `http://localhost:8080/metrics`
@@ -32,7 +32,6 @@ The app:
 | **Docker Compose** | `2.0+` | Orchestration |
 | **Redis** | `7+` | Caching |
 | **Prometheus** | `2.47+` | Metrics scraping |
-| **Grafana** | `10+` | Visualization |
 
 ---
 
@@ -62,7 +61,6 @@ The app:
 | Docker | https://docker.com |
 | Docker Compose | Multi-container setup |
 | Prometheus | https://prometheus.io |
-| Grafana | https://grafana.com |
 
 ### API Docs / Specs
 - **Metrics Endpoint**: `GET /metrics` → [Prometheus format](https://prometheus.io/docs/instrumenting/exposition_formats/)
@@ -76,7 +74,6 @@ The app:
 |-----------|-----------------|
 | Go modules | `go mod tidy` |
 | Redis | `docker run -d --name redis -p 6379:6379 redis:alpine` |
-| Prometheus + Grafana | `docker-compose -f prometheus-grafana.yml up` |
 
 > All Go dependencies are managed via `go.mod` — no manual install needed.
 
@@ -108,9 +105,6 @@ cd webpage-analyzer
 
 # 2. Install Go modules
 go mod tidy
-
-# 3. Start Redis (in another terminal)
-docker run -d --name redis -p 6379:6379 redis:alpine
 
 # 4. Run the app
 go run cmd/main.go
@@ -164,7 +158,7 @@ Redis: `redis:6379`
 | **Link checking blocks server** | Added **bounded worker pool** (100 concurrent `HEAD` requests) |
 | **Slow repeated analysis** | Added **Redis cache** with 1-hour TTL |
 | **Abuse / DoS risk** | Added **per-IP rate limiting** (5 req/sec) |
-| **No visibility in production** | Added **Prometheus metrics** + Grafana dashboard |
+| **No visibility in production** | Added **Prometheus metrics** |
 | **Template panic in tests** | Moved `template.ParseFiles` to runtime, not `init()` |
 | **Relative URLs misclassified** | Used `url.ResolveReference` for correct internal/external count |
 
