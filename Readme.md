@@ -186,3 +186,12 @@ Redis: `redis:6379`
 </p>
 
 ---
+
+## Testing & Coverage
+
+This project includes comprehensive unit and integration tests.
+
+### Run Tests
+
+```bash
+go test ./internal/analyzer/... -coverprofile=cover.out
