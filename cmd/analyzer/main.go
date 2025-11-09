@@ -16,6 +16,8 @@ func main() {
 		FullTimestamp: true,
 	})
 
+	analyzer.Tmpl = analyzer.LoadTemplate()
+	
 	// Serve static assets (HTML + CSS)
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)

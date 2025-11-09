@@ -9,11 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	urlRegex = regexp.MustCompile(`^https?://[^\s/$.?#].[^\s]*$`)
-	tmpl     = template.Must(template.ParseFiles("static/results.html"))
-)
-
 type pageData struct {
 	URL          string
 	HTMLVersion  string
@@ -22,6 +17,20 @@ type pageData struct {
 	Links        Links
 	HasLoginForm bool
 	Error        string
+}
+
+var (
+	urlRegex = regexp.MustCompile(`^https?://[^\s/$.?#].[^\s]*$`)
+	Tmpl     *template.Template // **do NOT initialise here**
+)
+
+// LoadTemplate is called from main.go (or wherever you start the server)
+func LoadTemplate() *template.Template {
+	t, err := template.ParseFiles("static/results.html")
+	if err != nil {
+		panic(fmt.Sprintf("failed to load template: %v", err))
+	}
+	return t
 }
 
 func AnalyzeHandler(log *logrus.Logger) http.HandlerFunc {
@@ -72,7 +81,7 @@ func AnalyzeHandler(log *logrus.Logger) http.HandlerFunc {
 			HasLoginForm: result.HasLoginForm,
 		}
 
-		if err := tmpl.Execute(w, data); err != nil {
+		if err := Tmpl.Execute(w, data); err != nil {
 			log.WithError(err).Error("Template render failed")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
@@ -81,5 +90,5 @@ func AnalyzeHandler(log *logrus.Logger) http.HandlerFunc {
 
 func renderError(w http.ResponseWriter, msg string) {
 	data := pageData{Error: msg}
-	_ = tmpl.Execute(w, data) // ignore error – we are already in an error path
+	_ = Tmpl.Execute(w, data) // ignore error – we are already in an error path
 }
