@@ -89,12 +89,14 @@ The app:
 | Variable | Description | Default |
 |-----------|--------------|----------|
 | `REDIS_ADDR` | Redis server address | `localhost:6379` |
+| `PORT` | HTTP Port | `8080` |
 
 > The application uses Redis for caching.  
 > Configure it via `.env` or Docker Compose as shown below.
 
 ```bash
 # .env
+PORT=8080
 REDIS_ADDR=redis:6379
 
 ### Option 1: Run Locally (Development)

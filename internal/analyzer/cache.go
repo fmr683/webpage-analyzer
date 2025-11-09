@@ -9,6 +9,7 @@ import (
 )
 
 var redisClient *redis.Client
+var CACHE_TTL = 1 // Redis TTL
 
 func init() {
 	addr := os.Getenv("REDIS_ADDR")
@@ -21,7 +22,8 @@ func init() {
 	})
 }
 
-
+// GetCachedResult checks if we already analyzed this URL before
+// It looks in Redis (fast in-memory database) under key: "result:https://example.com"
 func GetCachedResult(url string) (*AnalysisResult, bool) {
 	ctx := context.Background()
 	data, err := redisClient.Get(ctx, "result:"+url).Bytes()
@@ -33,8 +35,10 @@ func GetCachedResult(url string) (*AnalysisResult, bool) {
 	return &res, true
 }
 
+// SetCachedResult saves the analysis result in Redis for 1 hour
+// So next time someone asks for the same URL → instant answer!
 func SetCachedResult(url string, res *AnalysisResult) {
 	ctx := context.Background()
 	data, _ := json.Marshal(res)
-	redisClient.Set(ctx, "result:"+url, data, 1*time.Hour)
+	redisClient.Set(ctx, "result:"+url, data, time.Duration(CACHE_TTL)*time.Hour)
 }
