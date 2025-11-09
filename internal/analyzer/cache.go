@@ -4,13 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
+	"os"
 	"github.com/redis/go-redis/v9"
 )
 
-var redisClient = redis.NewClient(&redis.Options{
-	Addr: "redis:6379",
-})
+var redisClient *redis.Client
+
+func init() {
+	addr := os.Getenv("REDIS_ADDR")
+	if addr == "" {
+		addr = "localhost:6379" // fallback if env var not set
+	}
+
+	redisClient = redis.NewClient(&redis.Options{
+		Addr: addr,
+	})
+}
+
 
 func GetCachedResult(url string) (*AnalysisResult, bool) {
 	ctx := context.Background()

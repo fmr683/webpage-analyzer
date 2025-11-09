@@ -1,2 +1,4 @@
 .qodo
 cover.out
+.env
+.DS_Store
